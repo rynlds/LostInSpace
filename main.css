@@ -1,0 +1,97 @@
+body{
+    background-image: url("tile.png");
+    font-size:20px;
+    font-family:helvetica;
+}
+
+
+h1{
+    text-align:center;
+}
+
+#about{
+    margin-left:auto;
+    margin-right:auto;
+    width:850px;
+    border:7px solid #009998;
+    background-color:#fff;
+}
+
+#canvas1{
+    display:block;
+    border:7px solid #009998;
+    background-color:#000;
+}
+
+section{
+    width:850px;
+    height:auto;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#pbar{
+    width:850px;
+    color:white;
+    text-align:right;
+    background:#B5B5B7;
+    border:7px solid #009998;
+    height:50px;
+    border-bottom:0;
+}
+
+
+button{
+    float:left;
+    background:#009998;
+    color:white;
+    height:100%;
+}
+
+#aboutbutton{
+    width:100px;
+    height:50px;
+}
+
+#soundbutton{
+    float:left;
+    width:60px;
+    height:50px;
+}
+
+#restartbutton{
+    float:left;
+    width:auto;
+    height:50px;
+}
+
+
+#score{
+    float:right;
+    width:135px;
+    text-align:center;
+    height:50px;
+    border-left: solid 7px #009998;
+    outline:#545454;
+    background:black;
+}
+
+
+
+
+p{
+    margin-right:100px;
+}
+
+h3{
+    color:#009998;
+}
+
+img.logo {
+    display: block;
+    margin-left: auto;
+    margin-right: auto }
+
+video{
+    margin-left:20px;
+}

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+            <title>Lost in Space</title> <!-- Title displayed in broswer tab -->
+            <link rel="icon" type="image/png" href="icon.png" /> <!-- Icon displayed in broswer tab -->
+            <link rel="stylesheet" type="text/css" href="main.css"> <!-- CSS link -->
+                </head>
+    
+    <body onload="click_start()" onkeypress="start_game(), playAudio()" onclick="onkeypress="start_game(), playAudio()"">
+        <img class="logo" src="logo.png" alt="Power" width="250" height="150">
+            
+            <section>
+                <!-- User Interface -->
+                <div id="pbar">
+                    <a href="about.html"><button id="aboutbutton">About</button></a>
+                    <button onclick="playAudio()" type="button" id="soundbutton">&#9835;  ON </button>
+                    <button onclick="stopAudio()" type="button" id="soundbutton">&#9835; OFF</button>
+                    <div id="score">Health<br> <span id='p2'>100</span></div> <!-- Health 100 to 0 -->
+                    <div id="score">Score<br> <span id='p1'>0</span></div> <!-- Score 0 to Max? -->
+                    <div id="score">Highscore<br> <span id='p3'></span></div> <!-- Highscore -->
+                </div>
+                <!-- Canvas -->
+                <canvas id="canvas1" width="850" height="400" onclick="start_game(), playAudio()"></canvas>
+            </section>
+            
+            
+            <script>
+                // some variables
+                var asteroid_x=Math.random() * 850;
+                var asteroid_y=Math.random() * 400;
+                var point_x=Math.random() * 830;
+                var point_y=Math.random() * 380;
+                var ship_x=10;
+                var ship_y=150;
+                var c_canvas = document.getElementById("canvas1");
+                var c_context = c_canvas.getContext("2d");
+                var points=0; // points initial value
+                var health=100; // health initial value
+                
+                
+                // fill p3 with the "highscore" from local storage
+                document.getElementById("p3").innerHTML = localStorage.getItem("highscore");
+                               
+                               
+                // Sound track to game (backing track)
+                var audio = new Audio('track.mp3');
+                function playAudio() {
+                    audio.play(); // play audio
+                }
+            
+            // Sound for asteroid collision
+            var asteroidAudio = new Audio('crash.mp3');
+            function playasteroidAudio() {
+                asteroidAudio.play(); // play crash.mp3
+            }
+            
+            // Sound for points collision
+            var pointsAudio = new Audio('points.mp3');
+            function playpointsAudio() {
+                pointsAudio.play(); // play audio
+            }
+            
+            
+            function stopAudio() { // stop backing track
+                audio.pause(); // stop track.mp3
+            }
+            
+            
+            // canvas
+            var mycanv=document.getElementById("canvas1");
+            var ctx=mycanv.getContext("2d");
+            
+            // Event listner
+            mycanv.addEventListener("mousemove",seenmotion,false);
+            
+            function seenmotion(e) {
+                var bounding_box=mycanv.getBoundingClientRect();
+                ship_x=(e.clientX-bounding_box.left) *
+                (mycanv.width/bounding_box.width);
+                ship_y=(e.clientY-bounding_box.top) *
+                (mycanv.height/bounding_box.height);
+            }
+            
+            function start_game() {
+                // Interval timer which calls the function game_loop every 50ms
+                setInterval(game_loop, 50);
+                setInterval(draw_points, 5000); // 5 seconds
+                setInterval(draw_asteroids, 10000) // 10 seconds
+            }
+            
+            
+            function game_loop() {
+                
+                gravity = 2; // gravity amount
+                acceleration = 0.9; // acceleration amount
+                gravity = gravity*acceleration;
+                point_x = point_x - gravity; // right to left
+                // clear the canvas
+                mycanv.width=mycanv.width;
+                
+                // draw graphics
+                ctx.drawImage(img, vx, 0);
+                ctx.drawImage(img, img.width-Math.abs(vx), 0);
+                draw_ship(ship_x,ship_y);
+                draw_asteroid(asteroid_x,asteroid_y);
+                draw_point(point_x,point_y);
+                
+                // update asteroid location
+                asteroid_x--; //move left
+                if (asteroid_x>mycanv.width) {
+                    asteroid_x=850;
+                }
+
+        // if the points in current game are greater than the value stored as "highscore" in local storage
+        // set the "highscore" to hold the value of the points in the current game
+        if (points > localStorage.getItem("highscore")) {
+            localStorage.setItem("highscore", points);
+        }
+
+        
+        
+        
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                //collision points
+                var integerpoints = Math.floor(points); //rounds the number for points
+                var integerhealth = Math.floor(health); //rounds the number for health
+                
+                if (integerhealth <= 0){
+                    stop_game();
+                }
+                
+                if (collision(asteroid_x, asteroid_y, ship_x, ship_y)) {
+                    healthUpdate(1); // update the health
+                    playasteroidAudio();
+                    return; // break out of function
+                }
+                
+                if (collision2(point_x, point_y, ship_x, ship_y)) {
+                    pointsUpdate(1); // update the points
+                    playpointsAudio();
+                    point_x=Math.random() * 850;
+                    point_y=Math.random() * 400;
+                    setInterval(draw_point(x,y), 500); // .5 second
+                }
+                
+                //update points
+                // if the num is not = 0 then + 10 to the points
+                //Update the points in <p id="p1">
+                function pointsUpdate(num){
+                    if (num != 0) {points += 10;}
+                    document.getElementById('p1').innerHTML = points;
+                }
+                // if the num is greater than or equal to 0 then - 5 from health
+                //Update the health in <p id="p2">
+                function healthUpdate(num){
+                    if (num >= 0) {health -= 5;}
+                    document.getElementById('p2').innerHTML = health;
+                }
+                
+                
+                // space drift attempt
+                //point_x--; // when the gravity is overcome or too weak, move the point from right to left
+                //if (point_x>mycanv.width) {
+                // point_x=0;
+                //}
+            }
+            
+            
+            
+            // collision detection: asteroid
+            function collision(asteroid_x, asteroid_y, ship_x, ship_y){
+                if (asteroid_y + 90 < ship_y) {
+                    return false;
+                }
+                if (asteroid_y > ship_y + 50) {
+                    return false;
+                }
+                if (asteroid_x + 90 < ship_x) {
+                    return false;
+                }
+                if (asteroid_x > ship_x + 150) {
+                    return false;
+                }
+                return true;
+            }
+            
+            // collision detection: point
+            function collision2(point_x, point_y, ship_x, ship_y){
+                if (point_y + 90 < ship_y) {
+                    return false;
+                }
+                if (point_y + 50 > ship_y + 50) {
+                    return false;
+                }
+                if (point_x + 90 < ship_x) {
+                    return false;
+                }
+                if (point_x > ship_x + 150) {
+                    return false;
+                }
+                return true;
+            }
+            
+            
+            
+            //Start
+            function click_start() {
+                ctx.font = "bold 24px sans-serif";
+                ctx.fillStyle = 'yellow';
+                ctx.fillText("START GAME", mycanv.width - 500, 200);
+                ctx.fillText("Press ANY Key", mycanv.width - 505, 250);
+            }
+            
+            //End
+            function stop_game() {
+                mycanv.width=mycanv.width;
+                ctx.font = "bold 24px sans-serif";
+                ctx.fillStyle = 'yellow';
+                ctx.fillText("GAME OVER", mycanv.width - 500, 200);
+                ctx.fillText("Press 'R' to Play Again", mycanv.width - 550, 250);
+                
+                document.getElementById('p2').innerHTML = 0 //fake display: spoof health to display as 0
+                
+                // mute all audio
+                audio.muted = true;
+                asteroidAudio.muted = true;
+                pointAudio.muted = true;
+                
+                 document.getElementById("p3").innerHTML = localStorage.getItem("highscore");
+            }
+            
+            
+            // Graphic functions
+            function draw_asteroid(x,y) {
+                var asteroid_img=new Image();
+                asteroid_img.src="asteroid.png"; // asteroid 1
+                ctx.drawImage(asteroid_img,x,y);
+                var point_x=Math.random() * 850;
+                var point_y=Math.random() * 400;
+            }
+            
+            function draw_ship(x, y) {
+                var ship_img=new Image();
+                ship_img.src="ship.png"; // spaceship
+                ctx.drawImage(ship_img, x, y);
+            }
+            
+            function draw_point(x,y) {
+                var point_img=new Image();
+                point_img.src="point.png"; // point icon
+                ctx.drawImage(point_img,x,y);
+                var point_x=Math.random() * 850;
+                var point_y=Math.random() * 400;
+            }
+            
+            // used in redrawing points
+            function draw_points() {
+                point_x=Math.random() * 850;
+                point_y=Math.random() * 400;
+            }
+            
+            // used in redrawing asteroids
+            function draw_asteroids() {
+                asteroid_x=Math.random() * 850;
+                asteroid_y=Math.random() * 400;
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+            // Keyboard controls
+            function move_left() {
+                ship_x--;
+            }
+            function move_up() {
+                ship_y--;
+            }
+            function move_right() {
+                ship_x++;
+            }
+            function move_down() {
+                ship_y++;
+            }
+            document.onkeydown= function(event) {
+                
+                var keyCode;
+                
+                if(event == null)
+                {
+                    keyCode = window.event.keyCode;
+                }
+                else
+                {
+                    keyCode = event.keyCode;
+                }
+                console.log(keyCode);
+                switch(keyCode)
+                {
+                    // left
+                    case 37:
+                    move_left();
+                    break;
+                    // up
+                    case 38:
+                    // action when pressing up key
+                    move_up();
+                    break;
+                    // right
+                    case 39:
+                    // action when pressing right key
+                    move_right();
+                    break;
+                    // down
+                    case 40:
+                    // action when pressing down key
+                    move_down();
+                    break;
+                    case 82: //R key code
+                    location.reload(); //reload the page
+                    break;
+                    
+                    default: 
+                    break; 
+                } 
+            }
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            // Background
+            // Credit: http://codetheory.in/moving-scrolling-sliding-background-in-html5-canvas/
+            window.requestAnimationFrame = function() {
+                return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                window.oRequestAnimationFrame ||
+                function(f) {
+                    window.setTimeout(f,1e3/60);
+                }
+            }();
+            
+            var canvas = document.querySelector('canvas');
+            
+            var W = canvas.width;
+            var H = canvas.height;
+            
+            // Slide the background
+            
+            // Velocity X
+            var vx = 0;
+            
+            var img = new Image();
+            img.src = 'background.png'; // background image
+            
+            (function renderGame() {
+             window.requestAnimationFrame(renderGame);
+             
+             if (Math.abs(vx) > img.width) {
+             vx = 0;
+             }
+             
+             vx -= 1.5;
+             }());
+                </script>
+            
+            
+    </body>
+</html>
